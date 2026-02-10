@@ -355,6 +355,44 @@ void* wasm_rt_syscall_get_segue_base() {
   }
   return base;
 }
+// --- WASM2C Enhanced Math Helpers ---
+// These helpers provide i32 add, sub, and mul operations
+// with optional logging to linear memory. To enable, define
+// WASM_RT_MATH_MEM_LOG when building.
+// Example usage in generated code:
+//   int32_t result = wasm_i32_mul(a, b, mem_index);
+
+#ifdef WASM_RT_MATH_MEM_LOG
+// Linear memory for logging math results (1 page = 64 KiB)
+int32_t wasm_mem[65536];
+#endif
+
+// i32 addition
+static inline int32_t wasm_i32_add(int32_t a, int32_t b, uint32_t mem_addr) {
+    int32_t res = a + b;
+#ifdef WASM_RT_MATH_MEM_LOG
+    if (mem_addr < 65536) wasm_mem[mem_addr] = res;
+#endif
+    return res;
+}
+
+// i32 subtraction
+static inline int32_t wasm_i32_sub(int32_t a, int32_t b, uint32_t mem_addr) {
+    int32_t res = a - b;
+#ifdef WASM_RT_MATH_MEM_LOG
+    if (mem_addr < 65536) wasm_mem[mem_addr] = res;
+#endif
+    return res;
+}
+
+// i32 multiplication
+static inline int32_t wasm_i32_mul(int32_t a, int32_t b, uint32_t mem_addr) {
+    int32_t res = a * b;
+#ifdef WASM_RT_MATH_MEM_LOG
+    if (mem_addr < 65536) wasm_mem[mem_addr] = res;
+#endif
+    return res;
+}
 #endif
 
 // Include table operations for funcref

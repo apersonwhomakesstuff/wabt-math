@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@
 #ifndef WASM_RT_IMPL_H_
 #define WASM_RT_IMPL_H_
 
+#include <stdint.h>
 #include "wasm-rt.h"
 
 #ifdef _WIN32
@@ -26,6 +27,48 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* -------------------------------------------------------------------------
+   WASM2C Enhanced Math Helpers
+   ------------------------------------------------------------------------- */
+
+#ifdef WASM_RT_MATH_MEM_LOG
+/* * External declaration for logging memory. 
+ * NOTE: You must define 'int32_t wasm_mem[65536];' in one of your .c files.
+ */
+extern int32_t wasm_mem[65536];
+#endif
+
+/* i32 addition */
+static inline int32_t wasm_i32_add(int32_t a, int32_t b, uint32_t mem_addr) {
+    int32_t res = a + b;
+#ifdef WASM_RT_MATH_MEM_LOG
+    if (mem_addr < 65536) wasm_mem[mem_addr] = res;
+#endif
+    return res;
+}
+
+/* i32 subtraction */
+static inline int32_t wasm_i32_sub(int32_t a, int32_t b, uint32_t mem_addr) {
+    int32_t res = a - b;
+#ifdef WASM_RT_MATH_MEM_LOG
+    if (mem_addr < 65536) wasm_mem[mem_addr] = res;
+#endif
+    return res;
+}
+
+/* i32 multiplication */
+static inline int32_t wasm_i32_mul(int32_t a, int32_t b, uint32_t mem_addr) {
+    int32_t res = a * b;
+#ifdef WASM_RT_MATH_MEM_LOG
+    if (mem_addr < 65536) wasm_mem[mem_addr] = res;
+#endif
+    return res;
+}
+
+/* -------------------------------------------------------------------------
+   Standard WASM RT Implementation
+   ------------------------------------------------------------------------- */
 
 #ifndef WASM_RT_TRAP_HANDLER
 /** A setjmp buffer used for handling traps. */
@@ -47,14 +90,14 @@ extern WASM_RT_THREAD_LOCAL uint32_t wasm_rt_saved_call_stack_depth;
  * jump back and return the trap that occurred.
  *
  * ```
- *   wasm_rt_trap_t code = wasm_rt_impl_try();
- *   if (code != 0) {
- *     printf("A trap occurred with code: %d\n", code);
- *     ...
- *   }
+ * wasm_rt_trap_t code = wasm_rt_impl_try();
+ * if (code != 0) {
+ * printf("A trap occurred with code: %d\n", code);
+ * ...
+ * }
  *
- *   // Call the potentially-trapping function.
- *   my_wasm_func();
+ * // Call the potentially-trapping function.
+ * my_wasm_func();
  * ```
  */
 #define wasm_rt_impl_try()                                                    \
